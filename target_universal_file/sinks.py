@@ -54,7 +54,7 @@ class CSVSink(UniversalFileSink):
     def file_name(self):
         return f"{self.stream_name}.csv"
 
-    def create_writer(self, f: t.IO) -> csv.DictWriter:
+    def create_writer(self, f: t.IO) -> CSVWriter:
         return CSVWriter(f=f, fieldnames=self.schema["properties"].keys())
 
 
@@ -64,5 +64,5 @@ class JSONLSink(UniversalFileSink):
     def file_name(self):
         return f"{self.stream_name}.jsonl"
 
-    def create_writer(self, f: t.IO) -> csv.DictWriter:
+    def create_writer(self, f: t.IO) -> JSONLWriter:
         return JSONLWriter(f=f)
