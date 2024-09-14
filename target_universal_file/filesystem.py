@@ -20,18 +20,6 @@ class FileSystemManager(metaclass=ABCMeta):
     def filesystem(self) -> fsspec.AbstractFileSystem:
         pass
 
-    @abstractmethod
-    def write_begin(self) -> None:
-        pass
-
-    @abstractmethod
-    def write_record(self, record: dict) -> None:
-        pass
-
-    @abstractmethod
-    def write_end(self) -> None:
-        pass
-
     @classmethod
     def create_for_stream(cls, stream: UniversalFileSink) -> FileSystemManager:
         config = stream.config

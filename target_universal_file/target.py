@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from singer_sdk import typing as th
+from singer_sdk import Sink, typing as th
 from singer_sdk.target_base import Target
 
 from target_universal_file.sinks import (
     CSVSink,
+    JSONLSink
 )
 
 
@@ -29,11 +30,30 @@ class TargetUniversalFile(Target):
                     th.StringType,
                     required=True,
                 ),
-            )
-        )
+            ),
+            required=True,
+        ),
+        th.Property(
+            "format",
+            th.ObjectType(
+                th.Property(
+                    "type",
+                    th.StringType,
+                    required=True,
+                ),
+            ),
+            required=True,
+        ),
     ).to_dict()
 
-    default_sink_class = CSVSink
+    def get_sink_class(self, stream_name: str) -> type[TargetUniversalFile]:
+
+        file_type = self.config["format"]["type"]
+
+        if file_type == "csv":
+            return CSVSink
+        if file_type == "jsonl":
+            return JSONLSink
 
 
 if __name__ == "__main__":

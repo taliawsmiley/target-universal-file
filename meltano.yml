@@ -27,3 +27,5 @@ plugins:
       filesystem:
         protocol: "local"
         path: "/git/target-universal-file/.secrets/"
+      format:
+        type: jsonl

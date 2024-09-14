@@ -10,6 +10,7 @@ import typing as t
 
 from singer_sdk.sinks import BatchSink
 from target_universal_file.filesystem import FileSystemManager
+from target_universal_file.writer import Writer, CSVWriter, JSONLWriter
 
 class UniversalFileSink(BatchSink, metaclass=ABCMeta):
 
@@ -24,23 +25,12 @@ class UniversalFileSink(BatchSink, metaclass=ABCMeta):
     def file_name(self) -> str:
         pass
 
+    @property
     def full_path(self) -> Path:
         return Path(self.config["filesystem"]["path"], self.file_name)
 
     @abstractmethod
-    def create_writer(self, f: t.IO):
-        pass
-
-    @abstractmethod
-    def write_begin(self, writer) -> None:
-        pass
-
-    @abstractmethod
-    def write_record(self, writer, record: dict) -> None:
-        pass
-
-    @abstractmethod
-    def write_end(self, writer) -> None:
+    def create_writer(self, f: t.IO) -> Writer:
         pass
 
     def process_batch(self, context: dict) -> None:
@@ -52,27 +42,27 @@ class UniversalFileSink(BatchSink, metaclass=ABCMeta):
         with self.filesystem_manager.filesystem.transaction:
             with open(self.full_path, "wt") as f:
                 writer = self.create_writer(f)
-                self.write_begin(writer)
+                writer.write_begin()
                 for record in context["records"]:
-                    self.write_record(writer, record)
-                self.write_end(writer)
+                    writer.write_record(record)
+                writer.write_end()
 
 
 class CSVSink(UniversalFileSink):
-    """UniversalFile target sink class."""
 
     @property
     def file_name(self):
         return f"{self.stream_name}.csv"
 
     def create_writer(self, f: t.IO) -> csv.DictWriter:
-        return csv.DictWriter(f, fieldnames=self.schema.keys())
+        return CSVWriter(f=f, fieldnames=self.schema["properties"].keys())
 
-    def write_begin(self, writer: csv.DictWriter) -> None:
-        writer.writeheader()
 
-    def write_record(self, writer: csv.DictWriter, record: dict) -> None:
-        writer.writerow(record)
+class JSONLSink(UniversalFileSink):
 
-    def write_end(self, writer: csv.DictWriter) -> None:
-        pass
+    @property
+    def file_name(self):
+        return f"{self.stream_name}.jsonl"
+
+    def create_writer(self, f: t.IO) -> csv.DictWriter:
+        return JSONLWriter(f=f)
