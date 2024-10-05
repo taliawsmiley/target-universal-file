@@ -4,39 +4,44 @@
 
 Build with the [Meltano Target SDK](https://sdk.meltano.com).
 
-<!--
-
-Developer TODO: Update the below as needed to correctly describe the install procedure. For instance, if you do not have a PyPi repo, or if you want users to directly install from your git repo, you can modify this step as appropriate.
-
 ## Installation
 
-Install from PyPi:
+<!-- Install from PyPi:
 
 ```bash
 pipx install target-universal-file
-```
+``` -->
 
 Install from GitHub:
 
 ```bash
-pipx install git+https://github.com/ORG_NAME/target-universal-file.git@main
+pipx install git+https://github.com/sebastianswms/target-universal-file.git@main
 ```
-
--->
 
 ## Configuration
 
 ### Accepted Config Options
 
-<!--
-Developer TODO: Provide a list of config options accepted by the target.
 
-This section can be created by copy-pasting the CLI output from:
+| Setting | Required | Default | Description |
+|:--------|:--------:|:-------:|:------------|
+| filesystem | True     | None    |             |
+| filesystem.protocol | True     | None    |             |
+| filesystem.path | True     | None    |             |
+| format | True     | None    |             |
+| format.type | True     | None    |             |
+| add_record_metadata | False    | None    | Add metadata to records. |
+| load_method | False    | append-only | The method to use when loading data into the destination. `append-only` will always write all input records whether that records already exists or not. `upsert` will update existing records and insert new records. `overwrite` will delete all existing records and insert all input records. |
+| batch_size_rows | False    | None    | Maximum number of rows in each batch. |
+| validate_records | False    |       1 | Whether to validate the schema of the incoming streams. |
+| stream_maps | False    | None    | Config object for stream maps capability. For more information check out [Stream Maps](https://sdk.meltano.com/en/latest/stream_maps.html). |
+| stream_map_config | False    | None    | User-defined config values to be used within map expressions. |
+| faker_config | False    | None    | Config for the [`Faker`](https://faker.readthedocs.io/en/master/) instance variable `fake` used within map expressions. Only applicable if the plugin specifies `faker` as an addtional dependency (through the `singer-sdk` `faker` extra or directly). |
+| faker_config.seed | False    | None    | Value to seed the Faker generator for deterministic output: https://faker.readthedocs.io/en/master/#seeding-the-generator |
+| faker_config.locale | False    | None    | One or more LCID locale strings to produce localized output for: https://faker.readthedocs.io/en/master/#localization |
+| flattening_enabled | False    | None    | 'True' to enable schema flattening and automatically expand nested properties. |
+| flattening_max_depth | False    | None    | The max depth to flatten schemas. |
 
-```
-target-universal-file --about --format=markdown
-```
--->
 
 A full list of supported settings and capabilities for this
 target is available by running:
@@ -53,9 +58,7 @@ environment variable is set either in the terminal context or in the `.env` file
 
 ### Authentication and Authorization
 
-<!--
-Developer TODO: If your target requires special access on the destination system, or any special authentication requirements, provide those here.
--->
+Varies by file system.
 
 ## Usage
 
@@ -101,11 +104,6 @@ poetry run target-universal-file --help
 _**Note:** This target will work in any Singer environment and does not require Meltano.
 Examples here are for convenience and to streamline end-to-end orchestration scenarios._
 
-<!--
-Developer TODO:
-Your project comes with a custom `meltano.yml` project file already created. Open the `meltano.yml` and follow any "TODO" items listed in
-the file.
--->
 
 Next, install Meltano (if you haven't already) and any needed plugins:
 
