@@ -1,0 +1,31 @@
+version: 1
+send_anonymous_usage_stats: true
+project_id: "target-universal-file"
+default_environment: test
+environments:
+- name: test
+plugins:
+  extractors:
+  - name: tap-smoke-test
+    variant: meltano
+    pip_url: git+https://github.com/meltano/tap-smoke-test.git
+    config:
+      streams:
+      - stream_name: animals
+        input_filename: https://raw.githubusercontent.com/meltano/tap-smoke-test/main/demo-data/animals-data.jsonl
+  loaders:
+  - name: "target-universal-file"
+    namespace: "target_universal_file"
+    pip_url: -e .
+    capabilities:
+    - about
+    - stream-maps
+    - schema-flattening
+    settings:
+    - name: filesystem
+    config:
+      filesystem:
+        protocol: "local"
+        path: "/git/target-universal-file/.secrets/"
+      format:
+        type: jsonl
