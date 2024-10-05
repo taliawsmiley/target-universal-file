@@ -1,14 +1,18 @@
 from __future__ import annotations
 
-from abc import ABCMeta, abstractmethod
 import csv
-from io import TextIOWrapper
 import json
 import typing as t
+from abc import ABCMeta, abstractmethod
+from contextlib import contextmanager
+from pathlib import Path
+
 import pyarrow as pa
 import pyarrow.parquet as pq
-from contextlib import contextmanager
-import target_universal_file.sinks as tuf_s
+
+if t.TYPE_CHECKING:
+    import target_universal_file.sinks as tuf_s
+
 
 class Writer(metaclass=ABCMeta):
 
@@ -18,14 +22,16 @@ class Writer(metaclass=ABCMeta):
         self.config = stream.config
         self.schema = stream.schema
         self.logger = stream.logger
-        self.file = open(stream.full_path, self.open_mode)
+        self.file = Path(stream.full_path).open(self.open_mode)  # noqa: SIM115
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         self.file.close()
 
     @classmethod
     @contextmanager
-    def create_for_sink(cls: Writer, stream: tuf_s.UniversalFileSink) -> t.Generator[Writer, None, None]:
+    def create_for_sink(
+        cls: Writer, stream: tuf_s.UniversalFileSink
+    ) -> t.Generator[Writer, None, None]:
         writer = cls(stream)
 
         try:
@@ -35,27 +41,27 @@ class Writer(metaclass=ABCMeta):
         finally:
             writer.cleanup()
 
-    def write_records(self, records: t.Iterable[dict]):
+    def write_records(self, records: t.Iterable[dict]) -> None:
         for record in records:
             self.write_record(record)
 
-    def write_begin(self) -> None:
+    def write_begin(self) -> None:  # noqa: B027
         pass
 
     @abstractmethod
     def write_record(self, record: dict) -> None:
         pass
 
-    def write_end(self) -> None:
+    def write_end(self) -> None:  # noqa: B027
         pass
+
 
 class CSVWriter(Writer):
 
-    def __init__(self, stream):
+    def __init__(self, stream: tuf_s.UniversalFileSink) -> None:
         super().__init__(stream)
         self.csv_dict_writer = csv.DictWriter(
-            f=self.file,
-            fieldnames=self.schema["properties"].keys()
+            f=self.file, fieldnames=self.schema["properties"].keys()
         )
 
     def write_begin(self) -> None:
@@ -76,7 +82,7 @@ class ParquetWriter(Writer):
 
     open_mode = "wb"
 
-    def __init__(self, stream):
+    def __init__(self, stream: tuf_s.UniversalFileSink) -> None:
         super().__init__(stream)
         self.records = []
 
@@ -116,7 +122,7 @@ class ParquetWriter(Writer):
         raise ValueError(error_msg)
 
     @property
-    def _parquet_schema(self):
+    def _parquet_schema(self) -> pa.Schema:
         fields = []
         for field_name, property_dict in self.schema.get("properties", {}).items():
             field_type = self._parquet_type(property_dict=property_dict)

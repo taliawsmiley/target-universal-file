@@ -1,15 +1,17 @@
 """UniversalFile target sink class, which handles writing streams."""
 
 from __future__ import annotations
+
+import sys
+from abc import ABCMeta, abstractmethod
 from functools import cached_property
 from pathlib import Path
-from abc import ABCMeta, abstractmethod
-import sys
-import typing as t
 
 from singer_sdk.sinks import BatchSink
+
 import target_universal_file.filesystem as tuf_fs
 import target_universal_file.writer as tuf_w
+
 
 class UniversalFileSink(BatchSink, metaclass=ABCMeta):
 
@@ -39,10 +41,12 @@ class UniversalFileSink(BatchSink, metaclass=ABCMeta):
         Args:
             context: Stream partition or context dictionary.
         """
-        with self.filesystem_manager.filesystem.transaction:
-            with self.writer.create_for_sink(stream=self) as w:
-                w: tuf_w.Writer
-                w.write_records(context["records"])
+        with (
+            self.filesystem_manager.filesystem.transaction,
+            self.writer.create_for_sink(stream=self) as w,
+        ):
+            w: tuf_w.Writer
+            w.write_records(context["records"])
 
 
 class CSVSink(UniversalFileSink):
@@ -50,7 +54,7 @@ class CSVSink(UniversalFileSink):
     writer = tuf_w.CSVWriter
 
     @property
-    def file_name(self):
+    def file_name(self) -> str:
         return f"{self.stream_name}.csv"
 
 
@@ -59,7 +63,7 @@ class JSONLSink(UniversalFileSink):
     writer = tuf_w.JSONLWriter
 
     @property
-    def file_name(self):
+    def file_name(self) -> str:
         return f"{self.stream_name}.jsonl"
 
 
@@ -68,5 +72,5 @@ class ParquetSink(UniversalFileSink):
     writer = tuf_w.ParquetWriter
 
     @property
-    def file_name(self):
+    def file_name(self) -> str:
         return f"{self.stream_name}.parquet"
