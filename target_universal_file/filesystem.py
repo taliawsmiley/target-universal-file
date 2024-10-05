@@ -21,9 +21,8 @@ class FileSystemManager(metaclass=ABCMeta):
         pass
 
     @classmethod
-    def create_for_stream(cls, stream: UniversalFileSink) -> FileSystemManager:
-        config = stream.config
-        protocol = config["filesystem"]["protocol"]
+    def create_for_sink(cls, stream: UniversalFileSink) -> FileSystemManager:
+        protocol = stream.config["filesystem"]["protocol"]
         if protocol == "local":
             return LocalFileSystemManager(
                 config=stream.config,

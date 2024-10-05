@@ -5,10 +5,7 @@ from __future__ import annotations
 from singer_sdk import Sink, typing as th
 from singer_sdk.target_base import Target
 
-from target_universal_file.sinks import (
-    CSVSink,
-    JSONLSink
-)
+import target_universal_file.sinks as tuf_s
 
 
 class TargetUniversalFile(Target):
@@ -51,9 +48,11 @@ class TargetUniversalFile(Target):
         file_type = self.config["format"]["type"]
 
         if file_type == "csv":
-            return CSVSink
+            return tuf_s.CSVSink
         if file_type == "jsonl":
-            return JSONLSink
+            return tuf_s.JSONLSink
+        if file_type == "parquet":
+            return tuf_s.ParquetSink
 
 
 if __name__ == "__main__":
