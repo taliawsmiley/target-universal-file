@@ -28,8 +28,8 @@ pyarrow = "~=17.0.0"
 
 [tool.poetry.dev-dependencies]
 pytest = ">=8"
-ruff = "~=0.6.0"
-black = "~=24.8.0"
+ruff = "~=0.7.3"
+black = "~=24.10.0"
 singer-sdk = { version="~=0.40.0", extras = ["testing"] }
 
 [tool.poetry.extras]
