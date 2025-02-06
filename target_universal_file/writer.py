@@ -14,9 +14,22 @@ if t.TYPE_CHECKING:
     import target_universal_file.sinks as tuf_s
 
 
-class Writer(metaclass=ABCMeta):
+class WriterRegistryMeta(ABCMeta):
+    registry: dict[str, type[BaseWriter]] = {}
+
+    def __new__(cls, name, bases, dct):
+        new_cls = super().__new__(cls, name, bases, dct)
+        if new_cls.__name__ == "BaseWriter":
+            return new_cls
+        if new_cls.file_type not in cls.registry:
+            cls.registry[new_cls.file_type] = new_cls
+        return new_cls
+
+
+class BaseWriter(metaclass=WriterRegistryMeta):
 
     open_mode = "wt"
+    file_type: str
 
     def __init__(self, stream: tuf_s.UniversalFileSink) -> None:
         self.config = stream.config
@@ -24,14 +37,20 @@ class Writer(metaclass=ABCMeta):
         self.logger = stream.logger
         self.file = Path(stream.full_path).open(self.open_mode)  # noqa: SIM115
 
-    def cleanup(self) -> None:
-        self.file.close()
+    def write_records(self, records: t.Iterable[dict]) -> None:
+        for record in records:
+            self.write_record(record)
+
+    @abstractmethod
+    def write_record(self, record: dict) -> None:
+        error_msg = "write_record must be implemented by a subclass."
+        raise NotImplementedError(error_msg)
 
     @classmethod
     @contextmanager
     def create_for_sink(
-        cls: Writer, stream: tuf_s.UniversalFileSink
-    ) -> t.Generator[Writer, None, None]:
+        cls: type[BaseWriter], stream: tuf_s.UniversalFileSink
+    ) -> t.Generator[BaseWriter, None, None]:
         writer = cls(stream)
 
         try:
@@ -41,27 +60,25 @@ class Writer(metaclass=ABCMeta):
         finally:
             writer.cleanup()
 
-    def write_records(self, records: t.Iterable[dict]) -> None:
-        for record in records:
-            self.write_record(record)
-
     def write_begin(self) -> None:  # noqa: B027
-        pass
-
-    @abstractmethod
-    def write_record(self, record: dict) -> None:
         pass
 
     def write_end(self) -> None:  # noqa: B027
         pass
 
+    def cleanup(self) -> None:
+        self.file.close()
 
-class CSVWriter(Writer):
+
+class CSVWriter(BaseWriter):
+
+    file_type = "csv"
 
     def __init__(self, stream: tuf_s.UniversalFileSink) -> None:
         super().__init__(stream)
+        properties: dict = self.schema["properties"]
         self.csv_dict_writer = csv.DictWriter(
-            f=self.file, fieldnames=self.schema["properties"].keys()
+            f=self.file, fieldnames=properties.keys()
         )
 
     def write_begin(self) -> None:
@@ -71,16 +88,19 @@ class CSVWriter(Writer):
         self.csv_dict_writer.writerow(record)
 
 
-class JSONLWriter(Writer):
+class JSONLWriter(BaseWriter):
+
+    file_type = "jsonl"
 
     def write_record(self, record: dict) -> None:
         json.dump(record, self.file)
         self.file.write("\n")
 
 
-class ParquetWriter(Writer):
+class ParquetWriter(BaseWriter):
 
     open_mode = "wb"
+    file_type = "parquet"
 
     def __init__(self, stream: tuf_s.UniversalFileSink) -> None:
         super().__init__(stream)

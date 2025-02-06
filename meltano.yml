@@ -26,6 +26,6 @@ plugins:
     config:
       filesystem:
         protocol: "local"
-        path: "/git/target-universal-file/.secrets/"
+        path: "/home/ct/git/target-universal-file/.secrets/"
       format:
-        type: jsonl
+        type: parquet

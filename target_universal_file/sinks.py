@@ -13,27 +13,30 @@ import target_universal_file.filesystem as tuf_fs
 import target_universal_file.writer as tuf_w
 
 
-class UniversalFileSink(BatchSink, metaclass=ABCMeta):
+class UniversalFileSink(BatchSink):
 
     max_size = sys.maxsize  # All records in one batch.
 
-    @cached_property
-    def filesystem_manager(self) -> tuf_fs.FileSystemManager:
-        return tuf_fs.FileSystemManager.create_for_sink(stream=self)
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.file_type = self.config["format"]["type"]
+        self.protocol = self.config["filesystem"]["protocol"]
 
     @property
-    @abstractmethod
+    def filesystem_manager_type(self) -> type[tuf_fs.BaseFileSystemManager]:
+        return tuf_fs.FileSystemManagerRegistryMeta.registry[self.protocol]
+
+    @property
+    def writer_type(self) -> type[tuf_w.BaseWriter]:
+        return tuf_w.WriterRegistryMeta.registry[self.file_type]
+
+    @property
     def file_name(self) -> str:
-        pass
+        return f"{self.stream_name}.{self.file_type}"
 
     @property
     def full_path(self) -> Path:
         return Path(self.config["filesystem"]["path"], self.file_name)
-
-    @property
-    @abstractmethod
-    def writer(self) -> type[tuf_w.Writer]:
-        pass
 
     def process_batch(self, context: dict) -> None:
         """Write out any prepped records and return once fully written.
@@ -41,36 +44,9 @@ class UniversalFileSink(BatchSink, metaclass=ABCMeta):
         Args:
             context: Stream partition or context dictionary.
         """
+        filesystem_manager = self.filesystem_manager_type(stream=self)
         with (
-            self.filesystem_manager.filesystem.transaction,
-            self.writer.create_for_sink(stream=self) as w,
+            filesystem_manager.filesystem.transaction,
+            self.writer_type.create_for_sink(stream=self) as w,
         ):
-            w: tuf_w.Writer
             w.write_records(context["records"])
-
-
-class CSVSink(UniversalFileSink):
-
-    writer = tuf_w.CSVWriter
-
-    @property
-    def file_name(self) -> str:
-        return f"{self.stream_name}.csv"
-
-
-class JSONLSink(UniversalFileSink):
-
-    writer = tuf_w.JSONLWriter
-
-    @property
-    def file_name(self) -> str:
-        return f"{self.stream_name}.jsonl"
-
-
-class ParquetSink(UniversalFileSink):
-
-    writer = tuf_w.ParquetWriter
-
-    @property
-    def file_name(self) -> str:
-        return f"{self.stream_name}.parquet"
