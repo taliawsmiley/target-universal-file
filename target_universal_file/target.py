@@ -5,13 +5,16 @@ from __future__ import annotations
 from singer_sdk import typing as th
 from singer_sdk.target_base import Target
 
+import target_universal_file.filesystem as tuf_fs
 import target_universal_file.sinks as tuf_s
+import target_universal_file.writer as tuf_w
 
 
 class TargetUniversalFile(Target):
-    """Sample target for UniversalFile."""
+    """Target for UniversalFile."""
 
     name = "target-universal-file"
+    default_sink_class = tuf_s.UniversalFileSink
 
     config_jsonschema = th.PropertiesList(
         th.Property(
@@ -21,6 +24,7 @@ class TargetUniversalFile(Target):
                     "protocol",
                     th.StringType,
                     required=True,
+                    allowed_values=list(tuf_fs.BaseFileSystemManager.registry.keys()),
                 ),
                 th.Property(
                     "path",
@@ -37,26 +41,12 @@ class TargetUniversalFile(Target):
                     "type",
                     th.StringType,
                     required=True,
+                    allowed_values=list(tuf_w.WriterRegistryMeta.registry.keys()),
                 ),
             ),
             required=True,
         ),
     ).to_dict()
-
-    def get_sink_class(
-        self, stream_name: str  # noqa: ARG002
-    ) -> type[TargetUniversalFile]:
-
-        file_type = self.config["format"]["type"]
-
-        if file_type == "csv":
-            return tuf_s.CSVSink
-        if file_type == "jsonl":
-            return tuf_s.JSONLSink
-        if file_type == "parquet":
-            return tuf_s.ParquetSink
-        error_msg = f"File type '{file_type}' not recognized."
-        raise RuntimeError(error_msg)
 
 
 if __name__ == "__main__":

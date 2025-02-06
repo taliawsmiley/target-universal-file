@@ -48,6 +48,8 @@ target-version = "py38"
 
 [tool.ruff.lint]
 ignore = [
+    "ANN002",
+    "ANN003",
     "ANN101",  # missing-type-self
     "ANN102",  # missing-type-cls
     "COM812",  # missing-trailing-comma

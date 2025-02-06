@@ -1,39 +1,46 @@
 from __future__ import annotations
 
 import typing as t
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta
 from functools import cached_property
 
 import fsspec
 
 if t.TYPE_CHECKING:
-    import logging
-
     from target_universal_file.sinks import UniversalFileSink
 
 
-class FileSystemManager(metaclass=ABCMeta):
+class FileSystemManagerRegistryMeta(ABCMeta):
 
-    def __init__(self, config: dict, logger: logging.Logger) -> None:
-        self.config = config
-        self.logger = logger
+    registry: t.ClassVar[dict[str, type[BaseFileSystemManager]]] = {}
+
+    def __new__(
+        cls,
+        name: str,
+        bases: tuple[type, ...],
+        dct: dict[str, t.Any],
+    ) -> type[BaseFileSystemManager]:
+        new_cls = super().__new__(cls, name, bases, dct)
+        if new_cls.__name__ == "BaseFileSystemManager":
+            return new_cls
+        if new_cls.protocol not in cls.registry:
+            cls.registry[new_cls.protocol] = new_cls
+        return new_cls
+
+
+class BaseFileSystemManager(metaclass=FileSystemManagerRegistryMeta):
+
+    protocol: str
+
+    def __init__(self, stream: UniversalFileSink) -> None:
+        self.config = stream.config
+        self.logger = stream.logger
 
     @cached_property
-    @abstractmethod
     def filesystem(self) -> fsspec.AbstractFileSystem:
-        pass
-
-    @classmethod
-    def create_for_sink(cls, stream: UniversalFileSink) -> FileSystemManager:
-        protocol = stream.config["filesystem"]["protocol"]
-        if protocol == "local":
-            return LocalFileSystemManager(config=stream.config, logger=stream.logger)
-        error_msg = f"Protocol '{protocol}' not recognized."
-        raise RuntimeError(error_msg)
+        return fsspec.filesystem(self.protocol, auto_mkdir=True)
 
 
-class LocalFileSystemManager(FileSystemManager):
+class LocalFileSystemManager(BaseFileSystemManager):
 
-    @cached_property
-    def filesystem(self) -> fsspec.AbstractFileSystem:
-        return fsspec.filesystem("local", auto_mkdir=True)
+    protocol = "local"
