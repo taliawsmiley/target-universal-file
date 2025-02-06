@@ -12,9 +12,14 @@ if t.TYPE_CHECKING:
 
 class FileSystemManagerRegistryMeta(ABCMeta):
 
-    registry: dict[str, type[BaseFileSystemManager]] = {}
+    registry: t.ClassVar[dict[str, type[BaseFileSystemManager]]] = {}
 
-    def __new__(cls, name, bases, dct):
+    def __new__(
+        cls,
+        name: str,
+        bases: tuple[type, ...],
+        dct: dict[str, t.Any],
+    ) -> type[BaseFileSystemManager]:
         new_cls = super().__new__(cls, name, bases, dct)
         if new_cls.__name__ == "BaseFileSystemManager":
             return new_cls
@@ -34,6 +39,7 @@ class BaseFileSystemManager(metaclass=FileSystemManagerRegistryMeta):
     @cached_property
     def filesystem(self) -> fsspec.AbstractFileSystem:
         return fsspec.filesystem(self.protocol, auto_mkdir=True)
+
 
 class LocalFileSystemManager(BaseFileSystemManager):
 

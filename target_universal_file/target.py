@@ -5,8 +5,8 @@ from __future__ import annotations
 from singer_sdk import typing as th
 from singer_sdk.target_base import Target
 
-import target_universal_file.sinks as tuf_s
 import target_universal_file.filesystem as tuf_fs
+import target_universal_file.sinks as tuf_s
 import target_universal_file.writer as tuf_w
 
 

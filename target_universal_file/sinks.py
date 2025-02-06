@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import sys
-from abc import ABCMeta, abstractmethod
-from functools import cached_property
 from pathlib import Path
 
 from singer_sdk.sinks import BatchSink

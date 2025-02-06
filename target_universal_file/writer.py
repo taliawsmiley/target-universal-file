@@ -15,9 +15,14 @@ if t.TYPE_CHECKING:
 
 
 class WriterRegistryMeta(ABCMeta):
-    registry: dict[str, type[BaseWriter]] = {}
+    registry: t.ClassVar[dict[str, type[BaseWriter]]] = {}
 
-    def __new__(cls, name, bases, dct):
+    def __new__(
+        cls,
+        name: str,
+        bases: tuple[type, ...],
+        dct: dict[str, t.Any],
+    ) -> type[BaseWriter]:
         new_cls = super().__new__(cls, name, bases, dct)
         if new_cls.__name__ == "BaseWriter":
             return new_cls
@@ -60,10 +65,10 @@ class BaseWriter(metaclass=WriterRegistryMeta):
         finally:
             writer.cleanup()
 
-    def write_begin(self) -> None:  # noqa: B027
+    def write_begin(self) -> None:
         pass
 
-    def write_end(self) -> None:  # noqa: B027
+    def write_end(self) -> None:
         pass
 
     def cleanup(self) -> None:
@@ -77,9 +82,7 @@ class CSVWriter(BaseWriter):
     def __init__(self, stream: tuf_s.UniversalFileSink) -> None:
         super().__init__(stream)
         properties: dict = self.schema["properties"]
-        self.csv_dict_writer = csv.DictWriter(
-            f=self.file, fieldnames=properties.keys()
-        )
+        self.csv_dict_writer = csv.DictWriter(f=self.file, fieldnames=properties.keys())
 
     def write_begin(self) -> None:
         self.csv_dict_writer.writeheader()

@@ -6,5 +6,6 @@ import typing as t
 
 SAMPLE_CONFIG: dict[str, t.Any] = {}
 
+
 def test_target_universal_file() -> None:
     return
