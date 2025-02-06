@@ -24,7 +24,7 @@ singer-sdk = { version="~=0.40.0", extras = ["faker"] }
 fs-s3fs = { version = "~=1.1.1", optional = true }
 requests = "~=2.32.3"
 fsspec = "~=2024.12.0"
-pyarrow = "~=17.0.0"
+pyarrow = "~=19.0.0"
 
 [tool.poetry.dev-dependencies]
 pytest = ">=8"
