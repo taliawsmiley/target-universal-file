@@ -21,13 +21,13 @@ class TargetUniversalFile(Target):
             "protocol",
             th.StringType,
             required=True,
-            allowed_values=list(tuf_fs.BaseFileSystemManager._registry.keys()),
+            allowed_values=tuf_fs.FileSystemManagerRegistry.protocols(),
         ),
         th.Property(
             "file_type",
             th.StringType,
             required=True,
-            allowed_values=list(tuf_w.WriterRegistry._registry.keys()),
+            allowed_values=tuf_w.WriterRegistry.file_types(),
         ),
         th.Property(
             "path",

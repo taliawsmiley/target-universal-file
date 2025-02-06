@@ -26,7 +26,11 @@ class FileSystemManagerRegistry(ABCMeta):
         if new_cls.protocol not in cls._registry:
             cls._registry[new_cls.protocol] = new_cls
         return new_cls
-    
+
+    @classmethod
+    def protocols(cls) -> list[str]:
+        return list(cls._registry.keys())
+
     @classmethod
     def get(cls, protocol: str) -> type[BaseFileSystemManager]:
         if protocol not in cls._registry:
@@ -38,14 +42,14 @@ class FileSystemManagerRegistry(ABCMeta):
 class BaseFileSystemManager(metaclass=FileSystemManagerRegistry):
 
     protocol: str
-    required_protocol_options: list[str] = []
+    required_protocol_options: tuple[str] = ()
 
     def __init__(self, stream: UniversalFileSink) -> None:
         self.config = stream.config
         self.logger = stream.logger
         self.protocol_options = stream.config["protocol_options"]
         self.validate_protocol_options()
-    
+
     def validate_protocol_options(self) -> None:
         for option in self.required_protocol_options:
             if option not in self.protocol_options:
@@ -76,7 +80,7 @@ class LocalFileSystemManager(BaseFileSystemManager):
 class GCSFileSystemManager(BaseFileSystemManager):
 
     protocol = "gcs"
-    required_protocol_options = ["token"]
+    required_protocol_options = ("token",)
 
     @property
     def storage_options(self) -> dict[str, t.Any]:

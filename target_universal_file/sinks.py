@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from functools import cached_property
 import sys
+from functools import cached_property
 from pathlib import Path
 
 from singer_sdk.sinks import BatchSink

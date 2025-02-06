@@ -5,7 +5,6 @@ import json
 import typing as t
 from abc import ABCMeta, abstractmethod
 from contextlib import contextmanager
-from pathlib import Path
 
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -30,7 +29,11 @@ class WriterRegistry(ABCMeta):
         if new_cls.file_type not in cls._registry:
             cls._registry[new_cls.file_type] = new_cls
         return new_cls
-    
+
+    @classmethod
+    def file_types(cls) -> list[str]:
+        return list(cls._registry.keys())
+
     @classmethod
     def get(cls, file_type: str) -> type[BaseWriter]:
         if file_type not in cls._registry:
