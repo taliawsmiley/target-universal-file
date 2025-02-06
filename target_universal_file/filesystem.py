@@ -7,8 +7,6 @@ from functools import cached_property
 import fsspec
 
 if t.TYPE_CHECKING:
-    import logging
-
     from target_universal_file.sinks import UniversalFileSink
 
 

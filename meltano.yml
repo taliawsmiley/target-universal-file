@@ -23,9 +23,7 @@ plugins:
     - schema-flattening
     settings:
     - name: filesystem
-    config:
-      filesystem:
-        protocol: "local"
-        path: "/home/ct/git/target-universal-file/.secrets/"
-      format:
-        type: parquet
+      kind: object
+    - name: format
+      kind: object
+
