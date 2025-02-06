@@ -10,9 +10,9 @@ if t.TYPE_CHECKING:
     from target_universal_file.sinks import UniversalFileSink
 
 
-class FileSystemManagerRegistryMeta(ABCMeta):
+class FileSystemManagerRegistry(ABCMeta):
 
-    registry: t.ClassVar[dict[str, type[BaseFileSystemManager]]] = {}
+    _registry: t.ClassVar[dict[str, type[BaseFileSystemManager]]] = {}
 
     def __new__(
         cls,
@@ -23,24 +23,61 @@ class FileSystemManagerRegistryMeta(ABCMeta):
         new_cls = super().__new__(cls, name, bases, dct)
         if new_cls.__name__ == "BaseFileSystemManager":
             return new_cls
-        if new_cls.protocol not in cls.registry:
-            cls.registry[new_cls.protocol] = new_cls
+        if new_cls.protocol not in cls._registry:
+            cls._registry[new_cls.protocol] = new_cls
         return new_cls
+    
+    @classmethod
+    def get(cls, protocol: str) -> type[BaseFileSystemManager]:
+        if protocol not in cls._registry:
+            error_msg = f"FileSystemManager for protocol {protocol} not found."
+            raise ValueError(error_msg)
+        return cls._registry[protocol]
 
 
-class BaseFileSystemManager(metaclass=FileSystemManagerRegistryMeta):
+class BaseFileSystemManager(metaclass=FileSystemManagerRegistry):
 
     protocol: str
+    required_protocol_options: list[str] = []
 
     def __init__(self, stream: UniversalFileSink) -> None:
         self.config = stream.config
         self.logger = stream.logger
+        self.protocol_options = stream.config["protocol_options"]
+        self.validate_protocol_options()
+    
+    def validate_protocol_options(self) -> None:
+        for option in self.required_protocol_options:
+            if option not in self.protocol_options:
+                error_msg = (
+                    f"Protocol option '{option}' is required for protocol "
+                    f"'{self.protocol}'."
+                )
+                raise ValueError(error_msg)
+
+    @property
+    def storage_options(self) -> dict[str, t.Any]:
+        return {}
 
     @cached_property
     def filesystem(self) -> fsspec.AbstractFileSystem:
-        return fsspec.filesystem(self.protocol, auto_mkdir=True)
+        return fsspec.filesystem(
+            self.protocol,
+            auto_mkdir=True,
+            **self.storage_options,
+        )
 
 
 class LocalFileSystemManager(BaseFileSystemManager):
 
     protocol = "local"
+
+
+class GCSFileSystemManager(BaseFileSystemManager):
+
+    protocol = "gcs"
+    required_protocol_options = ["token"]
+
+    @property
+    def storage_options(self) -> dict[str, t.Any]:
+        return {"token": self.protocol_options["token"]}

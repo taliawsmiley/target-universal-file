@@ -22,8 +22,13 @@ plugins:
     - stream-maps
     - schema-flattening
     settings:
-    - name: filesystem
+    - name: protocol
+    - name: file_type
+    - name: path
+    - name: file_name_format
+    - name: protocol_options
       kind: object
-    - name: format
+      additional_properties: true
+    - name: file_type_options
       kind: object
-
+      additional_properties: true

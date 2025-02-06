@@ -14,8 +14,9 @@ if t.TYPE_CHECKING:
     import target_universal_file.sinks as tuf_s
 
 
-class WriterRegistryMeta(ABCMeta):
-    registry: t.ClassVar[dict[str, type[BaseWriter]]] = {}
+class WriterRegistry(ABCMeta):
+
+    _registry: t.ClassVar[dict[str, type[BaseWriter]]] = {}
 
     def __new__(
         cls,
@@ -26,12 +27,19 @@ class WriterRegistryMeta(ABCMeta):
         new_cls = super().__new__(cls, name, bases, dct)
         if new_cls.__name__ == "BaseWriter":
             return new_cls
-        if new_cls.file_type not in cls.registry:
-            cls.registry[new_cls.file_type] = new_cls
+        if new_cls.file_type not in cls._registry:
+            cls._registry[new_cls.file_type] = new_cls
         return new_cls
+    
+    @classmethod
+    def get(cls, file_type: str) -> type[BaseWriter]:
+        if file_type not in cls._registry:
+            error_msg = f"Writer for file type {file_type} not found."
+            raise ValueError(error_msg)
+        return cls._registry[file_type]
 
 
-class BaseWriter(metaclass=WriterRegistryMeta):
+class BaseWriter(metaclass=WriterRegistry):
 
     open_mode = "wt"
     file_type: str
@@ -40,7 +48,9 @@ class BaseWriter(metaclass=WriterRegistryMeta):
         self.config = stream.config
         self.schema = stream.schema
         self.logger = stream.logger
-        self.file = Path(stream.full_path).open(self.open_mode)  # noqa: SIM115
+        self.file = stream.filesystem_manager.filesystem.open(
+            stream.full_path, self.open_mode
+        )
 
     def write_records(self, records: t.Iterable[dict]) -> None:
         for record in records:
