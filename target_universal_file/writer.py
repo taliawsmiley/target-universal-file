@@ -8,6 +8,7 @@ from contextlib import contextmanager
 import pyarrow as pa
 import pyarrow.parquet as pq
 import simplejson as json
+import xlsxwriter
 
 if t.TYPE_CHECKING:
     import target_universal_file.sinks as tuf_s
@@ -165,3 +166,34 @@ class ParquetWriter(BaseWriter):
             field = pa.field(field_name, field_type)
             fields.append(field)
         return pa.schema(fields)
+
+
+class XLSXWriter(BaseWriter):
+
+    open_mode = "wb"
+    file_type = "xlsx"
+
+    def __init__(self, stream: tuf_s.UniversalFileSink) -> None:
+        super().__init__(stream)
+        self.records = []
+
+    def write_record(self, record: dict) -> None:
+        self.records.append(record)
+
+    def write_end(self) -> None:
+        field_names = list(self.schema.get("properties", {}).keys())
+
+        workbook = xlsxwriter.Workbook(self.file)
+        worksheet = workbook.add_worksheet()
+
+        for col_idx, field_name in enumerate(field_names):
+            worksheet.write(0, col_idx, field_name)
+
+        for row_idx, record in enumerate(self.records, start=1):
+            for col_idx, field_name in enumerate(field_names):
+                data = record[field_name]
+                if isinstance(data, (list, dict)):
+                    data = str(data)
+                worksheet.write(row_idx, col_idx, data)
+
+        workbook.close()

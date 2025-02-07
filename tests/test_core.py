@@ -40,3 +40,9 @@ def test_local_parquet() -> None:
     config = build_config(protocol="local", file_type="parquet")
     target = TargetUniversalFile(config=config)
     sink_file(Path("tests/data/appliances.singer"), target)
+
+
+def test_local_xlsx() -> None:
+    config = build_config(protocol="local", file_type="xlsx")
+    target = TargetUniversalFile(config=config)
+    sink_file(Path("tests/data/appliances.singer"), target)
