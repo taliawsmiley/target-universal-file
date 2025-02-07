@@ -47,7 +47,7 @@ class BaseFileSystemManager(metaclass=FileSystemManagerRegistry):
     def __init__(self, stream: UniversalFileSink) -> None:
         self.config = stream.config
         self.logger = stream.logger
-        self.protocol_options = stream.config["protocol_options"]
+        self.protocol_options = stream.config.get("protocol_options", {})
         self.validate_protocol_options()
 
     def validate_protocol_options(self) -> None:

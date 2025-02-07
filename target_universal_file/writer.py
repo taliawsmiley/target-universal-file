@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import csv
-import json
+import simplejson as json
 import typing as t
 from abc import ABCMeta, abstractmethod
 from contextlib import contextmanager
+import decimal
 
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -103,7 +104,6 @@ class CSVWriter(BaseWriter):
     def write_record(self, record: dict) -> None:
         self.csv_dict_writer.writerow(record)
 
-
 class JSONLWriter(BaseWriter):
 
     file_type = "jsonl"
@@ -141,10 +141,10 @@ class ParquetWriter(BaseWriter):
             return simple_types[jsonschema_type]
         if jsonschema_type == "array":
             items = property_dict.get("items")
-            if len(items) != 1:
+            if items is None or len(items) != 1:
                 error_msg = "arrays must contain values of exactly one type."
                 raise RuntimeError(error_msg)
-            return pa.array(self._parquet_type(self._parquet_type({"type": items[0]})))
+            return pa.list_(self._parquet_type(items))
         if jsonschema_type == "object":
             error_msg = "objects for parquet haven't been implemented yet."
             raise NotImplementedError(error_msg)
