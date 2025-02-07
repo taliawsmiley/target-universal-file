@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 import csv
-import simplejson as json
 import typing as t
 from abc import ABCMeta, abstractmethod
 from contextlib import contextmanager
-import decimal
 
 import pyarrow as pa
 import pyarrow.parquet as pq
+import simplejson as json
 
 if t.TYPE_CHECKING:
     import target_universal_file.sinks as tuf_s
@@ -103,6 +102,7 @@ class CSVWriter(BaseWriter):
 
     def write_record(self, record: dict) -> None:
         self.csv_dict_writer.writerow(record)
+
 
 class JSONLWriter(BaseWriter):
 
