@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+from functools import cached_property
 from pathlib import Path
 
 from singer_sdk.sinks import BatchSink
@@ -15,26 +16,28 @@ class UniversalFileSink(BatchSink):
 
     max_size = sys.maxsize  # All records in one batch.
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.file_type = self.config["format"]["type"]
-        self.protocol = self.config["filesystem"]["protocol"]
-
     @property
     def filesystem_manager_type(self) -> type[tuf_fs.BaseFileSystemManager]:
-        return tuf_fs.FileSystemManagerRegistryMeta.registry[self.protocol]
+        return tuf_fs.FileSystemManagerRegistry.get(self.config["protocol"])
+
+    @cached_property
+    def filesystem_manager(self) -> tuf_fs.BaseFileSystemManager:
+        return self.filesystem_manager_type(stream=self)
 
     @property
     def writer_type(self) -> type[tuf_w.BaseWriter]:
-        return tuf_w.WriterRegistryMeta.registry[self.file_type]
+        return tuf_w.WriterRegistry.get(self.config["file_type"])
 
     @property
     def file_name(self) -> str:
-        return f"{self.stream_name}.{self.file_type}"
+        return self.config["file_name_format"].format(
+            stream_name=self.stream_name,
+            file_type=self.config["file_type"],
+        )
 
     @property
     def full_path(self) -> Path:
-        return Path(self.config["filesystem"]["path"], self.file_name)
+        return Path(self.config["path"], self.file_name)
 
     def process_batch(self, context: dict) -> None:
         """Write out any prepped records and return once fully written.
@@ -42,9 +45,8 @@ class UniversalFileSink(BatchSink):
         Args:
             context: Stream partition or context dictionary.
         """
-        filesystem_manager = self.filesystem_manager_type(stream=self)
         with (
-            filesystem_manager.filesystem.transaction,
+            self.filesystem_manager.filesystem.transaction,
             self.writer_type.create_for_sink(stream=self) as w,
         ):
             w.write_records(context["records"])

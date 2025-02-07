@@ -18,33 +18,41 @@ class TargetUniversalFile(Target):
 
     config_jsonschema = th.PropertiesList(
         th.Property(
-            "filesystem",
-            th.ObjectType(
-                th.Property(
-                    "protocol",
-                    th.StringType,
-                    required=True,
-                    allowed_values=list(tuf_fs.BaseFileSystemManager.registry.keys()),
-                ),
-                th.Property(
-                    "path",
-                    th.StringType,
-                    required=True,
-                ),
-            ),
+            "protocol",
+            th.StringType,
+            required=True,
+            allowed_values=tuf_fs.FileSystemManagerRegistry.protocols(),
+        ),
+        th.Property(
+            "file_type",
+            th.StringType,
+            required=True,
+            allowed_values=tuf_w.WriterRegistry.file_types(),
+        ),
+        th.Property(
+            "path",
+            th.StringType,
             required=True,
         ),
         th.Property(
-            "format",
-            th.ObjectType(
-                th.Property(
-                    "type",
-                    th.StringType,
-                    required=True,
-                    allowed_values=list(tuf_w.WriterRegistryMeta.registry.keys()),
-                ),
-            ),
+            "file_name_format",
+            th.StringType,
             required=True,
+            default="{stream_name}.{file_type}",
+        ),
+        th.Property(
+            "protocol_options",
+            th.ObjectType(
+                additional_properties=True,
+            ),
+            required=False,
+        ),
+        th.Property(
+            "file_type_options",
+            th.ObjectType(
+                additional_properties=True,
+            ),
+            required=False,
         ),
     ).to_dict()
 
