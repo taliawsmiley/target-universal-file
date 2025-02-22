@@ -3,12 +3,12 @@ from __future__ import annotations
 import csv
 import typing as t
 from abc import ABCMeta, abstractmethod
-from contextlib import contextmanager
 
 import pyarrow as pa
 import pyarrow.parquet as pq
 import simplejson as json
-import xlsxwriter
+import xlsxwriter.worksheet as xlsx_worksheet
+import xlsxwriter.workbook as xlsx_workbook
 
 if t.TYPE_CHECKING:
     import target_universal_file.sinks as tuf_s
@@ -52,41 +52,41 @@ class BaseWriter(metaclass=WriterRegistry):
         self.config = stream.config
         self.schema = stream.schema
         self.logger = stream.logger
-        self.file = stream.filesystem_manager.filesystem.open(
-            stream.full_path, self.open_mode
-        )
 
-    def write_records(self, records: t.Iterable[dict]) -> None:
-        for record in records:
-            self.write_record(record)
+    def write_records(
+        self,
+        file: t.TextIO,
+        records: t.Iterable[dict],
+    ) -> None:
+        try:
+            self.write_begin(file)
+            for record in records:
+                self.write_record(file, record)
+            self.write_end(file)
+        finally:
+            self.cleanup(file)
 
     @abstractmethod
-    def write_record(self, record: dict) -> None:
+    def write_record(self, file: t.TextIO, record: dict) -> None:
         error_msg = "write_record must be implemented by a subclass."
         raise NotImplementedError(error_msg)
 
-    @classmethod
-    @contextmanager
-    def create_for_sink(
-        cls: type[BaseWriter], stream: tuf_s.UniversalFileSink
-    ) -> t.Generator[BaseWriter, None, None]:
-        writer = cls(stream)
-
-        try:
-            writer.write_begin()
-            yield writer
-            writer.write_end()
-        finally:
-            writer.cleanup()
-
-    def write_begin(self) -> None:
+    def write_begin(self, file: t.TextIO) -> None:
         pass
 
-    def write_end(self) -> None:
+    def write_end(self, file: t.TextIO) -> None:
         pass
 
-    def cleanup(self) -> None:
-        self.file.close()
+    def cleanup(self, file: t.TextIO) -> None:
+        pass
+
+    @property
+    def properties(self) -> dict:
+        return self.schema.get("properties", {})
+
+    @property
+    def fieldnames(self) -> list[str]:
+        return list(self.properties.keys())
 
 
 class CSVWriter(BaseWriter):
@@ -95,13 +95,13 @@ class CSVWriter(BaseWriter):
 
     def __init__(self, stream: tuf_s.UniversalFileSink) -> None:
         super().__init__(stream)
-        properties: dict = self.schema["properties"]
-        self.csv_dict_writer = csv.DictWriter(f=self.file, fieldnames=properties.keys())
+        self.csv_dict_writer: csv.DictWriter
 
-    def write_begin(self) -> None:
+    def write_begin(self, file: t.TextIO) -> None:
+        self.csv_dict_writer = csv.DictWriter(f=file, fieldnames=self.fieldnames)
         self.csv_dict_writer.writeheader()
 
-    def write_record(self, record: dict) -> None:
+    def write_record(self, file: t.TextIO, record: dict) -> None:
         self.csv_dict_writer.writerow(record)
 
 
@@ -109,9 +109,9 @@ class JSONLWriter(BaseWriter):
 
     file_type = "jsonl"
 
-    def write_record(self, record: dict) -> None:
-        json.dump(record, self.file)
-        self.file.write("\n")
+    def write_record(self, file: t.TextIO, record: dict) -> None:
+        json.dump(record, file)
+        file.write("\n")
 
 
 class ParquetWriter(BaseWriter):
@@ -123,12 +123,12 @@ class ParquetWriter(BaseWriter):
         super().__init__(stream)
         self.records = []
 
-    def write_record(self, record: dict) -> None:
+    def write_record(self, file: t.TextIO, record: dict) -> None:
         self.records.append(record)
 
-    def write_end(self) -> None:
+    def write_end(self, file: t.TextIO) -> None:
         table = pa.Table.from_pylist(self.records, schema=self._parquet_schema)
-        pq.write_table(table, self.file)
+        pq.write_table(table, file)
 
     def _parquet_type(self, property_dict: dict) -> pa.DataType:
         simple_types = {
@@ -144,7 +144,7 @@ class ParquetWriter(BaseWriter):
             items = property_dict.get("items")
             if items is None or len(items) != 1:
                 error_msg = "arrays must contain values of exactly one type."
-                raise RuntimeError(error_msg)
+                raise ValueError(error_msg)
             return pa.list_(self._parquet_type(items))
         if jsonschema_type == "object":
             error_msg = "objects for parquet haven't been implemented yet."
@@ -161,7 +161,7 @@ class ParquetWriter(BaseWriter):
     @property
     def _parquet_schema(self) -> pa.Schema:
         fields = []
-        for field_name, property_dict in self.schema.get("properties", {}).items():
+        for field_name, property_dict in self.properties.items():
             field_type = self._parquet_type(property_dict=property_dict)
             field = pa.field(field_name, field_type)
             fields.append(field)
@@ -175,25 +175,24 @@ class XLSXWriter(BaseWriter):
 
     def __init__(self, stream: tuf_s.UniversalFileSink) -> None:
         super().__init__(stream)
-        self.records = []
+        self.workbook: xlsx_workbook.Workbook
+        self.worksheet: xlsx_worksheet.Worksheet
+        self.row_idx = 0
 
-    def write_record(self, record: dict) -> None:
-        self.records.append(record)
+    def write_begin(self, file: t.TextIO) -> None:
+        self.workbook = xlsx_workbook.Workbook(file)
+        self.worksheet = self.workbook.add_worksheet()
+        for col_idx, field_name in enumerate(self.fieldnames):
+            self.worksheet.write(0, col_idx, field_name)
 
-    def write_end(self) -> None:
-        field_names = list(self.schema.get("properties", {}).keys())
+    def write_record(self, file: t.TextIO, record: dict) -> None:
+        for col_idx, field_name in enumerate(self.fieldnames):
+            data = record[field_name]
+            if isinstance(data, (list, dict)):
+                data = str(data)
+            self.worksheet.write(self.row_idx, col_idx, data)
+        self.row_idx += 1
 
-        workbook = xlsxwriter.Workbook(self.file)
-        worksheet = workbook.add_worksheet()
-
-        for col_idx, field_name in enumerate(field_names):
-            worksheet.write(0, col_idx, field_name)
-
-        for row_idx, record in enumerate(self.records, start=1):
-            for col_idx, field_name in enumerate(field_names):
-                data = record[field_name]
-                if isinstance(data, (list, dict)):
-                    data = str(data)
-                worksheet.write(row_idx, col_idx, data)
-
-        workbook.close()
+    def cleanup(self, file: t.TextIO) -> None:
+        self.workbook.close()
+        super().cleanup(file)
