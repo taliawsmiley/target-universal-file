@@ -16,17 +16,15 @@ class UniversalFileSink(BatchSink):
 
     max_size = sys.maxsize  # All records in one batch.
 
-    @property
-    def filesystem_manager_type(self) -> type[tuf_fs.BaseFileSystemManager]:
-        return tuf_fs.FileSystemManagerRegistry.get(self.config["protocol"])
-
     @cached_property
     def filesystem_manager(self) -> tuf_fs.BaseFileSystemManager:
-        return self.filesystem_manager_type(stream=self)
-
-    @property
-    def writer_type(self) -> type[tuf_w.BaseWriter]:
-        return tuf_w.WriterRegistry.get(self.config["file_type"])
+        protocol = self.config["protocol"]
+        return tuf_fs.FileSystemManagerRegistry.get(protocol)(stream=self)
+    
+    @cached_property
+    def writer(self) -> tuf_w.BaseWriter:
+        file_type = self.config["file_type"]
+        return tuf_w.WriterRegistry.get(file_type)(stream=self)
 
     @property
     def file_name(self) -> str:
@@ -45,8 +43,8 @@ class UniversalFileSink(BatchSink):
         Args:
             context: Stream partition or context dictionary.
         """
-        with (
-            self.filesystem_manager.filesystem.transaction,
-            self.writer_type.create_for_sink(stream=self) as w,
-        ):
-            w.write_records(context["records"])
+        filesystem = self.filesystem_manager.filesystem
+
+        with filesystem.transaction:
+            with filesystem.open(self.full_path, self.writer.open_mode) as file:
+                self.writer.write_records(file, context["records"])
