@@ -194,5 +194,6 @@ class XLSXWriter(BaseWriter):
         self.row_idx += 1
 
     def cleanup(self, file: t.TextIO) -> None:
-        self.workbook.close()
+        if self.workbook:
+            self.workbook.close()
         super().cleanup(file)
