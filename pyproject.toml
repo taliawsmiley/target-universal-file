@@ -24,7 +24,7 @@ singer-sdk = { version="~=0.44.3", extras = ["faker"] }
 gcsfs = { version = "~=2025.2.0", optional = true }
 requests = "~=2.32.3"
 fsspec = "~=2025.2.0"
-pyarrow = "~=19.0.0"
+pyarrow = "~=19.0.1"
 xlsxwriter = "~=3.2.2"
 
 [tool.poetry.group.dev.dependencies]
