@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import typing as t
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod
 from functools import cached_property
 
 import fsspec
+import s3fs
 
 if t.TYPE_CHECKING:
     from target_universal_file.sinks import UniversalFileSink
@@ -60,14 +61,14 @@ class BaseFileSystemManager(metaclass=FileSystemManagerRegistry):
                 raise ValueError(error_msg)
 
     @property
+    @abstractmethod
     def storage_options(self) -> dict[str, t.Any]:
-        return {}
+        pass
 
     @cached_property
     def filesystem(self) -> fsspec.AbstractFileSystem:
         return fsspec.filesystem(
             self.protocol,
-            auto_mkdir=True,
             **self.storage_options,
         )
 
@@ -75,6 +76,10 @@ class BaseFileSystemManager(metaclass=FileSystemManagerRegistry):
 class LocalFileSystemManager(BaseFileSystemManager):
 
     protocol = "local"
+
+    @property
+    def storage_options(self) -> dict[str, t.Any]:
+        return {"auto_mkdir": True}
 
 
 class GCSFileSystemManager(BaseFileSystemManager):
@@ -84,4 +89,35 @@ class GCSFileSystemManager(BaseFileSystemManager):
 
     @property
     def storage_options(self) -> dict[str, t.Any]:
-        return {"token": self.protocol_options["token"]}
+        return {
+            "token": self.protocol_options["token"],
+            "auto_mkdir": True,
+        }
+
+
+class S3FileSystemManager(BaseFileSystemManager):
+
+    protocol = "s3"
+
+    def validate_protocol_options(self) -> None:
+        if self.protocol_options.get("anon"):
+            return
+        for option in ("key", "secret"):
+            if option not in self.protocol_options:
+                error_msg = (
+                    f"Either provide 'anon' or both 'key' and 'secret' for "
+                    f"protocol '{self.protocol}'."
+                )
+                raise ValueError(error_msg)
+
+    @property
+    def storage_options(self) -> dict[str, t.Any]:
+        if self.protocol_options.get("anon"):
+            return {
+                "anon": True,
+            }
+        return {
+            "anon": False,
+            "key": self.protocol_options["key"],
+            "secret": self.protocol_options["secret"],
+        }
