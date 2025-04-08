@@ -20,7 +20,7 @@ class UniversalFileSink(BatchSink):
     def filesystem_manager(self) -> tuf_fs.BaseFileSystemManager:
         protocol = self.config["protocol"]
         return tuf_fs.FileSystemManagerRegistry.get(protocol)(stream=self)
-    
+
     @cached_property
     def writer(self) -> tuf_w.BaseWriter:
         file_type = self.config["file_type"]
@@ -45,6 +45,8 @@ class UniversalFileSink(BatchSink):
         """
         filesystem = self.filesystem_manager.filesystem
 
-        with filesystem.transaction:
-            with filesystem.open(self.full_path, self.writer.open_mode) as file:
-                self.writer.write_records(file, context["records"])
+        with (
+            filesystem.transaction,
+            filesystem.open(self.full_path, self.writer.open_mode) as file,
+        ):
+            self.writer.write_records(file, context["records"])

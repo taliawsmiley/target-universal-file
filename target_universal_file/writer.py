@@ -7,8 +7,8 @@ from abc import ABCMeta, abstractmethod
 import pyarrow as pa
 import pyarrow.parquet as pq
 import simplejson as json
-import xlsxwriter.worksheet as xlsx_worksheet
 import xlsxwriter.workbook as xlsx_workbook
+import xlsxwriter.worksheet as xlsx_worksheet
 
 if t.TYPE_CHECKING:
     import target_universal_file.sinks as tuf_s
@@ -101,7 +101,7 @@ class CSVWriter(BaseWriter):
         self.csv_dict_writer = csv.DictWriter(f=file, fieldnames=self.fieldnames)
         self.csv_dict_writer.writeheader()
 
-    def write_record(self, file: t.TextIO, record: dict) -> None:
+    def write_record(self, file: t.TextIO, record: dict) -> None:  # noqa: ARG002
         self.csv_dict_writer.writerow(record)
 
 
@@ -123,7 +123,7 @@ class ParquetWriter(BaseWriter):
         super().__init__(stream)
         self.records = []
 
-    def write_record(self, file: t.TextIO, record: dict) -> None:
+    def write_record(self, file: t.TextIO, record: dict) -> None:  # noqa: ARG002
         self.records.append(record)
 
     def write_end(self, file: t.TextIO) -> None:
@@ -185,7 +185,7 @@ class XLSXWriter(BaseWriter):
         for col_idx, field_name in enumerate(self.fieldnames):
             self.worksheet.write(0, col_idx, field_name)
 
-    def write_record(self, file: t.TextIO, record: dict) -> None:
+    def write_record(self, file: t.TextIO, record: dict) -> None:  # noqa: ARG002
         for col_idx, field_name in enumerate(self.fieldnames):
             data = record[field_name]
             if isinstance(data, (list, dict)):

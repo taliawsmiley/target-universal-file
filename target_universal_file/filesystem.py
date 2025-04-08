@@ -5,7 +5,6 @@ from abc import ABCMeta, abstractmethod
 from functools import cached_property
 
 import fsspec
-import s3fs
 
 if t.TYPE_CHECKING:
     from target_universal_file.sinks import UniversalFileSink
