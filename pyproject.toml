@@ -20,7 +20,7 @@ license = "Apache-2.0"
 
 [tool.poetry.dependencies]
 python = ">=3.9,<4.0"
-singer-sdk = { version="~=0.44.3", extras = ["faker"] }
+singer-sdk = { version="~=0.45.10", extras = ["faker"] }
 gcsfs = { version = ">=2025.3.2", optional = true }
 s3fs = { version = ">=2025.3.2", optional = true }
 aiobotocore = { version = ">=2.21.1", optional = true }
@@ -34,7 +34,7 @@ xlsxwriter = "~=3.2.2"
 pytest = ">=8"
 ruff = "~=0.11.5"
 black = "~=25.1.0"
-singer-sdk = { version="~=0.44.3", extras = ["testing"] }
+singer-sdk = { version="~=0.45.10", extras = ["testing"] }
 
 [tool.poetry.extras]
 gcs = ["gcsfs"]
