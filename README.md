@@ -1,27 +1,30 @@
 # target-universal-file
 
-`target-universal-file` is a Singer target for UniversalFile.
-
-Build with the [Meltano Target SDK](https://sdk.meltano.com).
+*target-universal-file* is a [Singer](https://www.singer.io/#what-it-is) target built with the [Meltano SDK](https://sdk.meltano.com) designed to load data to any file system (local, GCP, AWS, etc.) in any format (.csv, .json, .parquet, .xlsx, etc.).
 
 ## Installation
 
-<!-- Install from PyPi:
+Install from [PyPi](https://pypi.org/project/target-universal-file/):
 
 ```bash
 pipx install target-universal-file
-``` -->
+```
 
-Install from GitHub:
+Install from [GitHub](https://github.com/taliawsmiley/target-universal-file):
 
 ```bash
 pipx install git+https://github.com/sebastianswms/target-universal-file.git@main
 ```
 
+Add to your Meltano project from the [Meltano Hub](https://hub.meltano.com/loaders/target-universal-file):
+
+```bash
+meltano add loader target-universal-file
+```
+
 ## Configuration
 
 ### Accepted Config Options
-
 
 | Setting | Required | Default | Description |
 |:--------|:--------:|:-------:|:------------|
@@ -43,88 +46,61 @@ pipx install git+https://github.com/sebastianswms/target-universal-file.git@main
 | flattening_max_depth | False    | None    | The max depth to flatten schemas. |
 
 
-A full list of supported settings and capabilities for this
-target is available by running:
+A full list of supported settings and capabilities for *target-universal-file* is available by running:
 
 ```bash
 target-universal-file --about
 ```
 
-### Configure using environment variables
+### Environment Variables
 
-This Singer target will automatically import any environment variables within the working directory's
-`.env` if the `--config=ENV` is provided, such that config values will be considered if a matching
-environment variable is set either in the terminal context or in the `.env` file.
+*target-universal-file* will automatically import a `.env` file if `--config=ENV` is provided,.
 
-### Authentication and Authorization
+## Protocols
 
-Varies by file system.
+*target-universal-file* uses [fsspec](https://filesystem-spec.readthedocs.io/en/latest/) to easily connect to a wide variety of external file systems. Determine the file system to connect to by specifying a `protocol` in target configuration.
 
-## Usage
+The supported protocols are:
+1. [`local`](#local): For writing data to a local file.
+1. [`gcs`](#gcs): For connecting to a bucket on [Google Cloud](https://cloud.google.com/storage?hl=en).
+1. [`s3`](#s3): For connecting to a bucket on [Amazon Web Services](https://aws.amazon.com/s3/).
 
-You can easily run `target-universal-file` by itself or in a pipeline using [Meltano](https://meltano.com/).
+### Local
 
-### Executing the Target Directly
+**Protocol:** `local`<br>
+**Description:** For writing data to a local file.<br>
+**Protocol Options:** N/A<br>
+**Authentication:** Never
+
+### GCS
+
+**Protocol:** `gcs`<br>
+**Description:** For connecting to a bucket on [Google Cloud](https://cloud.google.com/storage?hl=en).<br>
+**Protocol Options:** `token`<br>
+**Authentication:** Mandatory
+
+### S3
+
+**Protocol:** `local`<br>
+**Description:** For connecting to a bucket on [Amazon Web Services](https://aws.amazon.com/s3/).<br>
+**Protocol Options:** `anon`, `key`, `secret`<br>
+**Authentication:** Optional
+
+## File Types
+
+*target-universal-file* supports a variety of data formats. Determine the data format to use by specifying a `file_type` in target configuration.
+
+The supported file types are:
+1. `csv`: For [Comma-Separated Value](https://en.wikipedia.org/wiki/Comma-separated_values) files.
+1. `jsonl`: For [JSON Lines](https://jsonlines.org/) files.
+1. `parquet`: For [Apache Parquet](https://parquet.apache.org/) files.
+1. `xlsx`: For [Microsoft Excel](https://www.microsoft.com/en-us/microsoft-365/excel) files.
+
+## Usage Example
 
 ```bash
 target-universal-file --version
 target-universal-file --help
-# Test using the "Carbon Intensity" sample:
-tap-carbon-intensity | target-universal-file --config /path/to/target-universal-file-config.json
+# Test using the "smoke test" sample tap from Meltano
+tap-smoke-test | target-universal-file --config /path/to/target-universal-file-config.json
 ```
-
-## Developer Resources
-
-Follow these instructions to contribute to this project.
-
-### Initialize your Development Environment
-
-```bash
-pipx install poetry
-poetry install
-```
-
-### Create and Run Tests
-
-Create tests within the `tests` subfolder and
-  then run:
-
-```bash
-poetry run pytest
-```
-
-You can also test the `target-universal-file` CLI interface directly using `poetry run`:
-
-```bash
-poetry run target-universal-file --help
-```
-
-### Testing with [Meltano](https://meltano.com/)
-
-_**Note:** This target will work in any Singer environment and does not require Meltano.
-Examples here are for convenience and to streamline end-to-end orchestration scenarios._
-
-
-Next, install Meltano (if you haven't already) and any needed plugins:
-
-```bash
-# Install meltano
-pipx install meltano
-# Initialize meltano within this directory
-cd target-universal-file
-meltano install
-```
-
-Now you can test and orchestrate using Meltano:
-
-```bash
-# Test invocation:
-meltano invoke target-universal-file --version
-# OR run a test `elt` pipeline with the Carbon Intensity sample tap:
-meltano run tap-carbon-intensity target-universal-file
-```
-
-### SDK Dev Guide
-
-See the [dev guide](https://sdk.meltano.com/en/latest/dev_guide.html) for more instructions on how to use the Meltano Singer SDK to
-develop your own Singer taps and targets.
