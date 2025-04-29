@@ -1625,18 +1625,18 @@ test = ["cffi", "hypothesis", "pandas", "pytest", "pytz"]
 
 [[package]]
 name = "pyarrow-stubs"
-version = "17.19"
+version = "19.1"
 description = "Type annotations for pyarrow"
 optional = false
-python-versions = "<4,>=3.8"
+python-versions = "<4,>=3.9"
 groups = ["main"]
 files = [
-    {file = "pyarrow_stubs-17.19-py3-none-any.whl", hash = "sha256:9909adfbcb1356e859d5e57967d60a13e59030ea223acbcc8693ec4683982403"},
-    {file = "pyarrow_stubs-17.19.tar.gz", hash = "sha256:45af6b05ebb2c84352a111c54063db1be8bf54274b8af709c7f1c034e8d84527"},
+    {file = "pyarrow_stubs-19.1-py3-none-any.whl", hash = "sha256:a94206b1a646f61e92da291362a337f5e77db7c18e5c56c8445f516ec919375b"},
+    {file = "pyarrow_stubs-19.1.tar.gz", hash = "sha256:e91c9b8b3bc551d53716bb466b02967d93b9827b1adc3d36bb4bba8662a81ccd"},
 ]
 
 [package.dependencies]
-pyarrow = ">=17"
+pyarrow = ">=19"
 
 [[package]]
 name = "pyasn1"
@@ -2672,4 +2672,4 @@ s3 = ["aiobotocore", "s3fs"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9,<4.0"
-content-hash = "41f0da9c419a25a99e4e80f3e5fc892bd8bb2e4e0536a2bf59818837b0ae6d02"
+content-hash = "9416a33f6a74ff9fe4cf48c5e943ee545a5c4e382924d056e6ff740b4a620197"
