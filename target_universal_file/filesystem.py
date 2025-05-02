@@ -97,26 +97,11 @@ class GCSFileSystemManager(BaseFileSystemManager):
 class S3FileSystemManager(BaseFileSystemManager):
 
     protocol = "s3"
-
-    def validate_protocol_options(self) -> None:
-        if self.protocol_options.get("anon"):
-            return
-        for option in ("key", "secret"):
-            if option not in self.protocol_options:
-                error_msg = (
-                    f"Either provide 'anon' or both 'key' and 'secret' for "
-                    f"protocol '{self.protocol}'."
-                )
-                raise ValueError(error_msg)
+    required_protocol_options = ("key", "secret")
 
     @property
     def storage_options(self) -> dict[str, t.Any]:
-        if self.protocol_options.get("anon"):
-            return {
-                "anon": True,
-            }
         return {
-            "anon": False,
             "key": self.protocol_options["key"],
             "secret": self.protocol_options["secret"],
         }

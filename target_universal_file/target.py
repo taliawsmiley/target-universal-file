@@ -50,7 +50,7 @@ class TargetUniversalFile(Target):
                 additional_properties=True,
             ),
             required=False,
-            description="Extended options for the protocol specified in the `protocol` config. See: [Protocols](#protocols).",
+            description="Extended options for the protocol specified in the `protocol` config. Provide this value as an object with key-value pairs as described by the protocol.See: [Protocols](#protocols).",
         ),
         th.Property(
             "file_type_options",
@@ -58,7 +58,7 @@ class TargetUniversalFile(Target):
                 additional_properties=True,
             ),
             required=False,
-            description="Extended options for the file type specified in the `file_type` config. See: [File Types](#file-types).",
+            description="Extended options for the file type specified in the `file_type` config. Provide this value as an object with key-value pairs as described by the file type. See: [File Types](#file-types).",
         ),
     ).to_dict()
 

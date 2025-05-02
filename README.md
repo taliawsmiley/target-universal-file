@@ -4,7 +4,7 @@
 
 ## Installation
 
-Install from [PyPi](https://pypi.org/project/target-universal-file/):
+Install from [PyPI](https://pypi.org/project/target-universal-file/):
 
 ```bash
 pipx install target-universal-file
@@ -13,7 +13,7 @@ pipx install target-universal-file
 Install from [GitHub](https://github.com/taliawsmiley/target-universal-file):
 
 ```bash
-pipx install git+https://github.com/sebastianswms/target-universal-file.git@main
+pipx install git+https://github.com/taliawsmiley/target-universal-file.git@main
 ```
 
 Add to your Meltano project from the [Meltano Hub](https://hub.meltano.com/loaders/target-universal-file):
@@ -28,18 +28,19 @@ meltano add loader target-universal-file
 
 | Setting | Required | Default | Description |
 |:--------|:--------:|:-------:|:------------|
-| filesystem | True     | None    |             |
-| filesystem.protocol | True     | None    |             |
-| filesystem.path | True     | None    |             |
-| format | True     | None    |             |
-| format.type | True     | None    |             |
-| add_record_metadata | False    | None    | Add metadata to records. |
-| load_method | False    | append-only | The method to use when loading data into the destination. `append-only` will always write all input records whether that records already exists or not. `upsert` will update existing records and insert new records. `overwrite` will delete all existing records and insert all input records. |
+| protocol | True     | None    | The protocol to connect to the file system. See: [Protocols](#protocols). |
+| file_type | True     | None    | The file type to use when writing data. See: [File Types](#file-types). |
+| path | True     | None    | The path on the file system where data will be written. |
+| file_name_format | True     | {stream_name}.{file_type} | The format for how to store data. `{stream_name}` will be replaced with the name of the stream and `{file_type}` will be replaced with the file type. |
+| protocol_options | False    | None    | Extended options for the protocol specified in the `protocol` config. Provide this value as an object with key-value pairs as described by the protocol.See: [Protocols](#protocols). |
+| file_type_options | False    | None    | Extended options for the file type specified in the `file_type` config. Provide this value as an object with key-value pairs as described by the file type. See: [File Types](#file-types). |
+| add_record_metadata | False    | None    | Whether to add metadata fields to records. |
+| load_method | False    | TargetLoadMethods.APPEND_ONLY | The method to use when loading data into the destination. `append-only` will always write all input records whether that records already exists or not. `upsert` will update existing records and insert new records. `overwrite` will delete all existing records and insert all input records. |
 | batch_size_rows | False    | None    | Maximum number of rows in each batch. |
 | validate_records | False    |       1 | Whether to validate the schema of the incoming streams. |
 | stream_maps | False    | None    | Config object for stream maps capability. For more information check out [Stream Maps](https://sdk.meltano.com/en/latest/stream_maps.html). |
 | stream_map_config | False    | None    | User-defined config values to be used within map expressions. |
-| faker_config | False    | None    | Config for the [`Faker`](https://faker.readthedocs.io/en/master/) instance variable `fake` used within map expressions. Only applicable if the plugin specifies `faker` as an addtional dependency (through the `singer-sdk` `faker` extra or directly). |
+| faker_config | False    | None    | Config for the [`Faker`](https://faker.readthedocs.io/en/master/) instance variable `fake` used within map expressions. Only applicable if the plugin specifies `faker` as an additional dependency (through the `singer-sdk` `faker` extra or directly). |
 | faker_config.seed | False    | None    | Value to seed the Faker generator for deterministic output: https://faker.readthedocs.io/en/master/#seeding-the-generator |
 | faker_config.locale | False    | None    | One or more LCID locale strings to produce localized output for: https://faker.readthedocs.io/en/master/#localization |
 | flattening_enabled | False    | None    | 'True' to enable schema flattening and automatically expand nested properties. |
@@ -70,21 +71,31 @@ The supported protocols are:
 **Protocol:** `local`<br>
 **Description:** For writing data to a local file.<br>
 **Protocol Options:** N/A<br>
-**Authentication:** Never
+
+Local paths support both relative `./folder` and absolute `/folder` reference. 
 
 ### GCS
 
 **Protocol:** `gcs`<br>
 **Description:** For connecting to a bucket on [Google Cloud](https://cloud.google.com/storage?hl=en).<br>
 **Protocol Options:** `token`<br>
-**Authentication:** Mandatory
+
+The suggested method of authenticating to GCS is to log in with gcloud and copy the provided credentials, such as from `~/.config/gcloud/application_default_credentials.json`.
+
+Steps to authenticate:
+1. Install the [gcloud CLI](https://cloud.google.com/sdk/docs/install-sdk).
+1. Run `gcloud auth application-default login`.
+1. Copy the output file from `~/.config/gcloud/application_default_credentials.json` and provide it as an environment variable to `protocol_options.token`.
+
+Other options are available for authentication as described by the `gcsfs` [documention](https://gcsfs.readthedocs.io/en/latest/#credentials).
 
 ### S3
 
 **Protocol:** `local`<br>
 **Description:** For connecting to a bucket on [Amazon Web Services](https://aws.amazon.com/s3/).<br>
-**Protocol Options:** `anon`, `key`, `secret`<br>
-**Authentication:** Optional
+**Protocol Options:** `key`, `secret`<br>
+
+Connecting to an S3 bucket anonymously is not supported.
 
 ## File Types
 
