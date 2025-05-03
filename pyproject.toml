@@ -1,12 +1,11 @@
 [tool.poetry]
 name = "target-universal-file"
 version = "0.0.0" # Managed by poetry-dynamic-versioning
-description = "Singer target for UniversalFile, built with the Meltano Singer SDK."
+description = "Singer target for any file type on any file system."
 readme = "README.md"
-authors = ["Sebastian Smiley <firstname.lastname@example.com>"]
+authors = ["Talia Smiley <firstname.lastname@example.com>"]
 keywords = [
     "ELT",
-    "UniversalFile",
 ]
 classifiers = [
     "Intended Audience :: Developers",
