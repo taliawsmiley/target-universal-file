@@ -2,29 +2,29 @@
 
 [[package]]
 name = "aiobotocore"
-version = "2.21.1"
+version = "2.22.0"
 description = "Async client for aws services using botocore and aiohttp"
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
 markers = "extra == \"s3\""
 files = [
-    {file = "aiobotocore-2.21.1-py3-none-any.whl", hash = "sha256:bd7c49a6d6f8a3d9444b0a94417c8da13813b5c7eec1c4f0ec2db7e8ce8f23e7"},
-    {file = "aiobotocore-2.21.1.tar.gz", hash = "sha256:010357f43004413e92a9d066bb0db1f241aeb29ffed306e9197061ffc94e6577"},
+    {file = "aiobotocore-2.22.0-py3-none-any.whl", hash = "sha256:b4e6306f79df9d81daff1f9d63189a2dbee4b77ce3ab937304834e35eaaeeccf"},
+    {file = "aiobotocore-2.22.0.tar.gz", hash = "sha256:11091477266b75c2b5d28421c1f2bc9a87d175d0b8619cb830805e7a113a170b"},
 ]
 
 [package.dependencies]
 aiohttp = ">=3.9.2,<4.0.0"
 aioitertools = ">=0.5.1,<1.0.0"
-botocore = ">=1.37.0,<1.37.2"
+botocore = ">=1.37.2,<1.37.4"
 jmespath = ">=0.7.1,<2.0.0"
 multidict = ">=6.0.0,<7.0.0"
 python-dateutil = ">=2.1,<3.0.0"
 wrapt = ">=1.10.10,<2.0.0"
 
 [package.extras]
-awscli = ["awscli (>=1.38.0,<1.38.2)"]
-boto3 = ["boto3 (>=1.37.0,<1.37.2)"]
+awscli = ["awscli (>=1.38.2,<1.38.4)"]
+boto3 = ["boto3 (>=1.37.2,<1.37.4)"]
 
 [[package]]
 name = "aiohappyeyeballs"
@@ -187,7 +187,7 @@ description = "Timeout context manager for asyncio programs"
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
-markers = "(extra == \"s3\" or extra == \"gcs\") and python_version <= \"3.10\""
+markers = "(extra == \"s3\" or extra == \"gcs\") and python_version < \"3.11\""
 files = [
     {file = "async_timeout-5.0.1-py3-none-any.whl", hash = "sha256:39e3809566ff85354557ec2398b55e096c8364bacac9405a7a1fa429e77fe76c"},
     {file = "async_timeout-5.0.1.tar.gz", hash = "sha256:d9321a7a3d5a6a5e187e824d2fa0793ce379a202935782d555d6e9d2735677d3"},
@@ -232,7 +232,7 @@ description = "Backport of Python 3.11's datetime.fromisoformat"
 optional = false
 python-versions = ">3"
 groups = ["main", "dev"]
-markers = "python_version <= \"3.10\""
+markers = "python_version < \"3.11\""
 files = [
     {file = "backports_datetime_fromisoformat-2.0.3-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:5f681f638f10588fa3c101ee9ae2b63d3734713202ddfcfb6ec6cea0778a29d4"},
     {file = "backports_datetime_fromisoformat-2.0.3-cp310-cp310-macosx_11_0_universal2.whl", hash = "sha256:cd681460e9142f1249408e5aee6d178c6d89b49e06d44913c8fdfb6defda8d1c"},
@@ -332,23 +332,23 @@ uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
 name = "botocore"
-version = "1.37.1"
+version = "1.37.3"
 description = "Low-level, data-driven core of boto 3."
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
 markers = "extra == \"s3\""
 files = [
-    {file = "botocore-1.37.1-py3-none-any.whl", hash = "sha256:c1db1bfc5d8c6b3b6d1ca6794f605294b4264e82a7e727b88e0fef9c2b9fbb9c"},
-    {file = "botocore-1.37.1.tar.gz", hash = "sha256:b194db8fb2a0ffba53568c364ae26166e7eec0445496b2ac86a6e142f3dd982f"},
+    {file = "botocore-1.37.3-py3-none-any.whl", hash = "sha256:d01bd3bf4c80e61fa88d636ad9f5c9f60a551d71549b481386c6b4efe0bb2b2e"},
+    {file = "botocore-1.37.3.tar.gz", hash = "sha256:fe8403eb55a88faf9b0f9da6615e5bee7be056d75e17af66c3c8f0a3b0648da4"},
 ]
 
 [package.dependencies]
 jmespath = ">=0.7.1,<2.0.0"
 python-dateutil = ">=2.1,<3.0.0"
 urllib3 = [
-    {version = ">=1.25.4,<1.27", markers = "python_version < \"3.10\""},
     {version = ">=1.25.4,<2.2.0 || >2.2.0,<3", markers = "python_version >= \"3.10\""},
+    {version = ">=1.25.4,<1.27", markers = "python_version < \"3.10\""},
 ]
 
 [package.extras]
@@ -529,7 +529,7 @@ description = "Backport of PEP 654 (exception groups)"
 optional = false
 python-versions = ">=3.7"
 groups = ["dev"]
-markers = "python_version <= \"3.10\""
+markers = "python_version < \"3.11\""
 files = [
     {file = "exceptiongroup-1.2.2-py3-none-any.whl", hash = "sha256:3111b9d131c238bec2f8f516e123e14ba243563fb135d3fe885990585aa7795b"},
     {file = "exceptiongroup-1.2.2.tar.gz", hash = "sha256:47c2edf7c6738fafb49fd34290706d1a1a2f4d1c6df275526b62cbb4aa5393cc"},
@@ -739,8 +739,8 @@ files = [
 google-auth = ">=2.14.1,<3.0.0"
 googleapis-common-protos = ">=1.56.2,<2.0.0"
 proto-plus = [
-    {version = ">=1.22.3,<2.0.0"},
     {version = ">=1.25.0,<2.0.0", markers = "python_version >= \"3.13\""},
+    {version = ">=1.22.3,<2.0.0", markers = "python_version < \"3.13\""},
 ]
 protobuf = ">=3.19.5,<3.20.0 || >3.20.0,<3.20.1 || >3.20.1,<4.21.0 || >4.21.0,<4.21.1 || >4.21.1,<4.21.2 || >4.21.2,<4.21.3 || >4.21.3,<4.21.4 || >4.21.4,<4.21.5 || >4.21.5,<7.0.0"
 requests = ">=2.18.0,<3.0.0"
@@ -936,7 +936,7 @@ description = "Lightweight in-process concurrent programming"
 optional = false
 python-versions = ">=3.7"
 groups = ["main", "dev"]
-markers = "python_version < \"3.14\" and (platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"x86_64\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\")"
+markers = "python_version <= \"3.13\" and (platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"x86_64\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\")"
 files = [
     {file = "greenlet-3.1.1-cp310-cp310-macosx_11_0_universal2.whl", hash = "sha256:0bbae94a29c9e5c7e4a2b7f0aae5c17e8e90acbfd3bf6270eeba60c39fce3563"},
     {file = "greenlet-3.1.1-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:0fde093fb93f35ca72a556cf72c92ea3ebfda3d79fc35bb19fbe685853869a83"},
@@ -2294,7 +2294,7 @@ description = "A lil' TOML parser"
 optional = false
 python-versions = ">=3.8"
 groups = ["dev"]
-markers = "python_version <= \"3.10\""
+markers = "python_version < \"3.11\""
 files = [
     {file = "tomli-2.2.1-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:678e4fa69e4575eb77d103de3df8a895e1591b48e740211bd1067378c69e8249"},
     {file = "tomli-2.2.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:023aa114dd824ade0100497eb2318602af309e5a55595f76b626d6d9f3b7b0a6"},
